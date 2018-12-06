@@ -1,74 +1,32 @@
 # Sequelize It
 
-> Don't criticize it.
+This project is built to address the glaring problem of Sequelize's documentation. 
 
-# Getting Started
+## Core Principles
 
-```js
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize('make-twitter', '', '', {
-  host: 'localhost',
-  dialect: 'postgres'
-});
+The core principles of this project are simple:
 
-const User = sequelize.define('user', {
-  firstName: { type: Sequelize.STRING },
-  lastName: { type: Sequelize.STRING }
-});
-```
+1. Consistency (of examples, patterns, style, etc)
+1. Information Hierarchy (In the order of: getting started, best practices, extra stuff)
 
-```bash
-$ createdb make-twitter
-```
+## How to Contribute
 
+1. Fork
+1. Clone
+1. Install `docsify`
 
-# Models
+  ```bash
+  $ npm i docsify-cli -g
+  ```
+  
+1. Navigate to the `/docs` directory 
+1. Run docsify 
 
-## Defining Models
-## CRUD w/ Models
+  ```bash
+  $ docsify serve .
+  ```
 
-```
-
-User.findAll()
-User.findOne({ where: { attribute: value } })
-User.findById(userId)
-User.create(obj)
-
-user.update()
-
-User.findOrCreate()
-
-user[0].dataValues.id
-```
-
-
-# Migrations
-
-## Create Tables
-## Update/Drop Tables
-## Data Migrations
-
-
-# Associations: One to Many  
-
-
-# Associations: Many to Many  
-
-# Validations
-
-
-
-# Seeds
-
-# Sync (don't use this)
-
-Don't use sync.
-
-// force: true will drop the table if it already exists {force: true}
-// User.sync().then(() => {
-  // Table created
-  // return User.create({
-  //   firstName: 'John',
-  //   lastName: 'Hancock'
-  // });
-// });
+1. Make a new branch 
+1. Make changes
+1. Submit pull request
+1. Yayerz
