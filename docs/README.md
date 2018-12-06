@@ -142,31 +142,156 @@ module.exports = (sequelize, DataTypes) => {
 };
 ```
 
-
-
 ```js
-
+// migrations/20181206223919-create-todo.js
 'use strict';
-module.exports = (sequelize, DataTypes) => {
-  var User = sequelize.define('User', {
-    first_name: DataTypes.STRING,
-    last_name: DataTypes.STRING,
-    bio: DataTypes.TEXT
-  })
-
-  User.associate = function(models) {
-    User.hasMany(models.Post); // PostId
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.createTable('Todos', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      title: {
+        type: Sequelize.STRING
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.dropTable('Todos');
   }
-
-  return User;
 };
 ```
 
-## CRUD w/ Models
+## Running & Rolling Back Migrations
 
-All the query helpers return promises, so either use the `then` `catch` pattern or the `async` `await` pattern.
+```bash
+$ sequelize db:migrate
+```
 
-> GOTCHA - you can't just call `user.fullName` like a normal library would work. You have to call it like this: `user.get('fullName')`. Ugh.
+I don't recommend rolling back migrations at all, but if you feel that you have to, only roll back one and only before you've shipped it to production.
+
+```bash
+$ sequelize db:migrate:undo
+```
+
+## Define a Custom Migration
+
+Migrations are used in multiple cases:
+
+1. Creating a table for new model
+1. Dropping a table
+1. Changing data already in the database (called a "data migration")
+1. Adding, updating, or deleting columns of an existing table
+
+Let's look at how to create a custom migration for the case of adding some attributes to our existant `Todos` table.
+
+We'll use the command line to generate the migration:
+
+```bash
+$ sequelize migration:generate --name add-attr-to-todo
+```
+
+Which generates this boilerplate:
+
+
+```js
+// migrations/20181206230335-add-attr-to-todo.js
+
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+
+  },
+
+  down: (queryInterface, Sequelize) => {
+
+  }
+};
+```
+
+The `up` method is the functions run when the migration is run, and the `down` method is run when the migration is undone, reversed, or rolledback. Some migration are irreversible, for example many data migrations. But as much as possible, you should write your migrations to be 100% reversible. We use the `queryInterface` methods to make changes to our tables in the `up` section, and the inverse changes in the `down` section
+
+```js
+// migrations/20181206230335-add-attr-to-todo.js
+
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    queryInterface.addColumn('Todos', 'summary', { type: Sequelize.TEXT });
+    queryInterface.addColumn('Todos', 'completedAt', { type: Sequelize.DATE });
+  },
+
+  down: (queryInterface, Sequelize) => {
+    queryInterface.removeColumn('Todos', 'summary');
+    queryInterface.removeColumn('Todos', 'completedAt');
+  }
+};
+```
+
+And then we'll have to update our models:
+
+```js
+// models/todo.js
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  const Todo = sequelize.define('Todo', {
+    title: DataTypes.STRING,
+    summary: DataTypes.TEXT,
+    completedAt: DataTypes.DATE
+  }, {});
+
+  Todo.associate = function(models) {
+    // associations can be defined here
+  };
+
+  return Todo;
+};
+```
+
+
+## QueryInterface Methods
+
+Here are an exhaustive list of the [queryInterface methods](http://docs.sequelizejs.com/class/lib/query-interface.js~QueryInterface.html). The most common ones are:
+
+* `addColumn(table: String, key: String, attribute: Object, options: Object)`
+* `renameColumn(tableName: String, attrNameBefore: String, attrNameAfter: String, options: Object)`
+* `changeColumn(tableName: String, attributeName: String, dataTypeOrOptions: Object, options: Object)` (changes the column's type)
+* `removeColumn(tableName: String, attributeName: String, options: Object)`
+* `addIndex(tableName: String, options: Object)`
+
+## Sequelize Data Types
+Here are an exhaustive list of [Sequelize Types](http://docs.sequelizejs.com/manual/tutorial/models-definition.html#data-types) you can use. The most common are as follows:
+
+```js
+Sequelize.STRING                      // VARCHAR(255)
+Sequelize.TEXT                        // TEXT
+Sequelize.INTEGER                     // INTEGER
+Sequelize.BIGINT                      // BIGINT
+Sequelize.FLOAT                       // FLOAT
+Sequelize.DECIMAL                     // DECIMAL
+Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
+Sequelize.BOOLEAN                     // TINYINT(1)
+```
+
+# CRUD w/ Models
+
+Now that we've defined our models
+All the query helpers return promises, so either use the `then`/`catch` pattern or the `async`/`await` pattern.
+
+> GOTCHA - you can't just call `user.fullName` like you might expect. You have to call it like this: `user.get('fullName')`.
 
 We'll include our models into any file using this line of code:
 
@@ -331,6 +456,23 @@ module.exports = {
 
 ## Defining Association
 
+```js
+
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  var User = sequelize.define('User', {
+    first_name: DataTypes.STRING,
+    last_name: DataTypes.STRING,
+    bio: DataTypes.TEXT
+  })
+
+  User.associate = function(models) {
+    User.hasMany(models.Post); // PostId
+  }
+
+  return User;
+};
+```
 
 ## Fetching Children
 
@@ -613,6 +755,36 @@ let tasks = await models.User.findAll({ attributes: { exclude: ['email', 'passwo
 # Virtuals
 
 # Seeds
+
+## Generate New Seeder File
+
+```bash
+$ sequelize seed:generate --name demo-user
+```
+
+```js
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.bulkInsert('Users', [{
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'demo@demo.com'
+      }], {});
+  },
+
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.bulkDelete('Users', null, {});
+  }
+};
+```
+
+## Run Seeds
+
+```bash
+$ sequelize db:seed:all
+```
 
 # Less Useful Stuff
 
