@@ -1,12 +1,28 @@
 # Sequelize It
 
-> Don't criticize it.
+> Don't criticize it. Sequelize it.
 
-I built this because [the Sequelize Docs](http://docs.sequelizejs.com/) are not very good documentation.
+<!-- Place this tag where you want the button to render. -->
+<a class="github-button" href="https://github.com/ajbraus/sequelize-it" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star ajbraus/sequelize-it on GitHub">Star</a>
+
+<!-- Place this tag where you want the button to render. -->
+<a class="github-button" href="https://github.com/ajbraus" data-size="large" data-show-count="true" aria-label="Follow @ajbraus on GitHub">Follow @ajbraus</a>
+
+
+I built this because [the Sequelize Docs](http://docs.sequelizejs.com/) are currently not very good documentation and it has just been years, so time for something better.
+
+The core principles of these docs are:
+
+1. Consistency (of examples, patterns, style, etc)
+1. Information Hierarchy (In the order of: getting started, best practices, extra stuff)
 
 For these docs, I will be doing everything with Sequelize V4, Postgresql, on OSX.
 
-Sequelize has lots of ways of doing things. Within these docs, I will only present the one way that I suggest to use.
+Sequelize has lots of ways of doing things. Within these docs, I will only present the one way of doing things. So it is both a usage guide and a style guide.
+
+These docs are built using [docify-cli](https://www.npmjs.com/package/docsify-cli) and hosted using [Github Pages](https://pages.github.com/).
+
+Please contribute to these docs by submitting a pull request to the project's [GitHub repo](https://github.com/ajbraus/sequelize-it).
 
 # Getting Started
 
@@ -25,7 +41,7 @@ Sequelize has lots of ways of doing things. Within these docs, I will only prese
 1. Install sequelize, sequelize-cli, and your database's modules (here postgres) locally:
 
   ```bash
-  $ npm install sequelize sequelize-cli pg pg-hstore -g
+  $ npm install sequelize sequelize-cli pg pg-hstore --save
   ```
 
 1. Initializing Sequelize with the `sequelize-cli` kinda barfs a bunch of folders and files onto your project, so we are going to preemptively avoid that by setting up a `.sequelizerc` file puts all sequelize stuff into a folder called `/db`. So make that file with the following contents:
@@ -46,34 +62,87 @@ Sequelize has lots of ways of doing things. Within these docs, I will only prese
     $ sequelize init
   ```
 
-1. Connect to your local db:
-
-  ```js
-  const Sequelize = require('sequelize');
-  const username = '';
-  const password = '';
-  const sequelize = new Sequelize('my-db', username, password, {
-    host: 'localhost',
-    dialect: 'postgres'
-  });
+  This will create the following folder and file structure:
+  ```
+    /db
+      /config
+        - config.json
+      /models
+        - index.js
+      /migrations
+      /seeders
   ```
 
-1. Define a Model
+  The `config/config.json` file has the configuration setup for your development, test, and production environments. The `models/index.js` file has boilerplate code that will unify and associate the models you put in the `models` directory.
+
+1. Customize the `config/config.json` file so the database name lines up with the database you created above:
+
+  ```
+  {
+    "development": {
+      "username": null,
+      "password": null,
+      "database": "my-db",
+      "host": "127.0.0.1",
+      "dialect": "postgres"
+    },
+    "test": {
+      "username": null,
+      "password": null,
+      "database": "my-db-test",
+      "host": "127.0.0.1",
+      "dialect": "postgres"
+    },
+    "production": {
+      "use_env_variable": "PROD_DATABASE_URL"
+    }
+  }
+  ```
+
+1. Test that your connection is live. In your `models/index.js` file add the following code after the variable `sequelize` is defined.
 
   ```js
-  const User = sequelize.define('user', {
-    firstName: { type: Sequelize.STRING },
-    lastName: { type: Sequelize.STRING }
-  });
+  sequelize
+    .authenticate()
+    .then(() => {
+      console.log('Connection has been established successfully.');
+    })
+    .catch(err => {
+      console.error('Unable to connect to the database:', err);
+    });
   ```
+
+1. Database setup and connected! Now we just need to define models and migrations.
 
 # Models & Migrations
 
 ## Define a Model and it's Migration
 
+To define a proper model, you also need to create a migration. For simplicity use a the `sequelize-cli` generators to get started:
+
 ```bash
-$ sequelize model:create
+$ sequelize model:create --name Todo --attributes title:string
 ```
+
+This creates a `models/todo.js` model file and a corresponding migration in the `migrations` folder.
+
+```js
+// models/todo.js
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  const Todo = sequelize.define('Todo', {
+    title: DataTypes.STRING
+  }, {});
+
+  Todo.associate = function(models) {
+    // associations can be defined here
+  };
+
+  return Todo;
+};
+```
+
+
 
 ```js
 
