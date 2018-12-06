@@ -1,8 +1,8 @@
 # Sequelize It
 
-> Don't critize it.
+> Don't criticize it.
 
-> An awesome project.
+# Getting Started
 
 ```js
 const Sequelize = require('sequelize');
@@ -21,21 +21,46 @@ const User = sequelize.define('user', {
 $ createdb make-twitter
 ```
 
+
+# Models
+
+## Defining Models
+## CRUD w/ Models
+
 ```
 
-User.findOrCreate()
 User.findAll()
-User.create
+User.findOne({ where: { attribute: value } })
+User.findById(userId)
+User.create(obj)
 
 user.update()
+
+User.findOrCreate()
 
 user[0].dataValues.id
 ```
 
-# Getting Started
+
+# Migrations
+
+## Create Tables
+## Update/Drop Tables
+## Data Migrations
 
 
-# Sync
+# Associations: One to Many  
+
+
+# Associations: Many to Many  
+
+# Validations
+
+
+
+# Seeds
+
+# Sync (don't use this)
 
 Don't use sync.
 
@@ -47,5 +72,3 @@ Don't use sync.
   //   lastName: 'Hancock'
   // });
 // });
-
-# Create Models
