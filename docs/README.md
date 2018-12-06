@@ -2,6 +2,8 @@
 
 > Don't criticize it.
 
+I built this because [the Sequelize Docs](http://docs.sequelizejs.com/) are not very good documentation.
+
 For these docs, I will be doing everything with Sequelize V4, Postgresql, on OSX.
 
 Sequelize has lots of ways of doing things. Within these docs, I will only present the one way that I suggest to use.

@@ -7,14 +7,79 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css">
+  <style>
+
+  </style>
 </head>
 <body>
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: '',
-      repo: ''
+      name: 'sequelize-it',
+      repo: 'https://github.com/ajbraus/sequelize-it',
+      themeColor: "#6EB5F7",
+      noEmoji: false,
     }
+
+    // window.$docsify = {
+    //   name: "docs@droxey",
+    //   repo: "https://github.com/droxey/docs",
+    //   homepage: "home.md",
+    //   logo: "_media/droxey-blue.png",
+    //   themeColor: "#678594",
+    //   el: "#app",
+    //   maxLevel: 3,
+    //   subMaxLevel: 6,
+    //   coverPage: false,
+    //   onlyCover: false,
+    //   notFoundPage: true,
+    //   loadSidebar: false,
+    //   auto2top: true,
+    //   autoHeader: true,
+    //   noEmoji: false,
+    //   executeScript: true,
+    //   externalLinkTarget: "_blank",
+    //   search: {
+    //     maxAge: 86400000,
+    //     paths: "auto",
+    //     placeholder: "Type to search...",
+    //     noData: "No Results!",
+    //     depth: 3
+    //   },
+    //   themeable: {
+    //     readyTransition: true,
+    //     responsiveTables: true
+    //   },
+    //   pagination: {
+    //     previousText: ":arrow_left: Previous",
+    //     nextText: "Next :arrow_right:"
+    //   },
+    //   routerMode: "hash",
+    //   ga: "UA-111535249-1"
+    // };
+
+    // window.onload = function() {
+    //   if (typeof navigator.serviceWorker !== "undefined") {
+    //     navigator.serviceWorker.register("sw.js");
+    //   }
+    //
+    //   console.log(window.$docsify);
+    //
+    //   setTimeout(function() {
+    //     baffle("#main h1 a.anchor span")
+    //       .start()
+    //       .set({ speed: 90 })
+    //       .text(currentText => currentText)
+    //       .reveal(500, 1500);
+    //   }, 250);
+    //
+    //   var isDeployed = window.document.location.href.indexOf("droxey.com") !== -1;
+    //   if (isDeployed) {
+    //     window.$docsify = {
+    //       basePath: "https://droxey.com/docs/"
+    //     };
+    //   }
+    // };
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
 </body>
