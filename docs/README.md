@@ -24,7 +24,7 @@ These docs are built using [docify-cli](https://www.npmjs.com/package/docsify-cl
 
 Please contribute to these docs by submitting a pull request to the project's [GitHub repo](https://github.com/ajbraus/sequelize-it).
 
-# Getting Started
+# Quick Start: Getting Connected
 
 1. Sequelize works with many flavors of SQL databases, so install one of them your computer.
   * mysql
@@ -102,8 +102,7 @@ Please contribute to these docs by submitting a pull request to the project's [G
 1. Test that your connection is live. In your `models/index.js` file add the following code after the variable `sequelize` is defined.
 
   ```js
-  sequelize
-    .authenticate()
+  sequelize.authenticate()
     .then(() => {
       console.log('Connection has been established successfully.');
     })
@@ -112,7 +111,7 @@ Please contribute to these docs by submitting a pull request to the project's [G
     });
   ```
 
-1. Database setup and connected! Now we just need to define models and migrations.
+1. Database setup and connected! Now we just need to define models and migrations. Then use them to read and write to the database.
 
 # Models & Migrations
 
@@ -301,6 +300,8 @@ const models  = require('../db/models');
 
 ## Index
 
+`.findAll()` with `where`
+
 ```js
 models.User.findAll({ where: { name: "Betty" } }).then(users => {
 
@@ -319,7 +320,7 @@ try {
 
 ## Show
 
-`findById()`
+`.findById()` (if you have the id)
 
 ```js
 models.User.findById(userId).then(user => {
@@ -327,9 +328,17 @@ models.User.findById(userId).then(user => {
 }).catch(err => ({
 
 })
+
+// OR WITH ASYNC/AWAIT
+
+try {
+  let user = await models.User.findById(userId);
+} catch (err) {
+
+}
 ```
 
-`findOne`
+`findOne` (if you do not have the id)
 
 ```js
 models.User.findOne({ where: { attribute: value } }).then(user => {
@@ -337,10 +346,20 @@ models.User.findOne({ where: { attribute: value } }).then(user => {
 }).catch(err => ({
 
 })
+
+// OR WITH ASYNC/AWAIT
+
+try {
+  let user = await models.User.findById(userId);
+} catch (err) {
+
+}
 ```
 
 
 ## Create
+
+`.create()`
 
 ```js
 models.Task.create(req.body).then(task => {
@@ -354,7 +373,32 @@ models.Task.create(req.body).then(task => {
 let task = await models.Task.create(req.body);
 ```
 
+Or if you prefer the railsy way — `.build()` then `.save()`
+
+```js
+models.Task.build(req.body).then(task => {
+  task.save().then(task => {
+  }).catch(err => ({
+
+  });
+  // you can now access the newly created task via the variable task
+}).catch(err => ({
+
+})
+
+// OR WITH ASYNC/AWAIT
+
+try {
+  let user = await models.Task.build(req.body);
+  user = await user.save();
+} catch (err) {
+
+}
+```
+
 ## Update
+
+`.update()`
 
 ```js
 models.Task.findById(taskId).then(task => {
@@ -369,27 +413,41 @@ models.Task.findById(taskId).then(task => {
 
 // OR USE ASYNC/AWAIT
 
-let task = await models.Task.findById(taskId);
-task = await task.update(req.body);
+try {
+  let task = await models.Task.findById(taskId);
+  task = await task.update(req.body);
+} catch (err) {
+
+}
 ```
 
 ## Destroy
+
+`.destroy()`
+
 ```js
 Task.findById(taskId).then(task => {
-  task.destroy();
-}).then(() => {
- // now i'm gone :)
+  task.destroy()
 }).catch(err => ({
 
 })
+
+// OR USE ASYNC/AWAIT
+
+try {
+  let task = await models.Task.findById(taskId);
+  task.destroy();
+} catch (err) {
+
+}
 ```
 
 ## Find or Create
 
-A nice thing to have!
+A nice thing to have! `.findOrCreate()`
 
 ```js
-models.User.findOrCreate()
+let tag = models.Tag.findOrCreate(req.body)
 ```
 
 
@@ -451,14 +509,17 @@ module.exports = {
 
 ## Data Migrations
 
+TODO
 
 # Associations: One to Many  
+
+TODO
 
 ## Defining Association
 
 ```js
-
 'use strict';
+
 module.exports = (sequelize, DataTypes) => {
   var User = sequelize.define('User', {
     first_name: DataTypes.STRING,
@@ -509,23 +570,28 @@ app.get('/posts/:id', async (req, res, next) => {
 
 ## Fetching Parent
 
-
-
+TODO
 
 ## onDelete
 
-`onDelete`
+`onDelete` TODO
 
 
 # Associations: Many to Many  
 
+TODO
+
 ## Defining Association
 
+TODO
 
 ## Fetching Associated Records
 
+TODO
 
 # Configure db Connection
+
+There are some verbose configuration settings you can use as your implementation gets more sophistocated:
 
 ```js
 const Sequelize = require('sequelize');
@@ -554,23 +620,6 @@ Or you can use a URI to connect:
 const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
-## Test Connection
-
-If you can't tell if you've connected to your db, you can use this test to see:
-
-```js
-
-const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
-
-sequelize.authenticate()
-  .then(() => {
-    console.log('Connection has been established successfully.');
-  })
-  .catch(err => {
-    console.error('Unable to connect to the database:', err);
-  });
-```
-
 # Paranoid Setting
 
 If the `paranoid` options is true, the object will not be deleted, instead the `deletedAt` column will be set to the current timestamp. To force the deletion, you can pass force: true to the destroy call:
@@ -580,6 +629,74 @@ task.destroy({ force: true })
 ```
 
 # Validations
+
+Sequelize.js uses [validator.js](https://github.com/chriso/validator.js) to add **Validators** to your models.
+
+```js
+// models/todo.js
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  const Todo = sequelize.define('Todo', {
+    title: {
+      DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "Gotta Do it!",
+      validate: { min: 0, max: 180 }
+    }
+  }, {});
+
+  Todo.associate = function(models) {
+    // associations can be defined here
+  };
+
+  return Todo;
+};
+```
+
+## Custom Validators
+
+You can use the `validate` option to add custom validators.
+
+```js
+// models/todo.js
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  const Todo = sequelize.define('Todo', {
+    title: {
+      DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "Gotta Do it!",
+      validate: { min: 0, max: 180 }
+    },
+    latitude: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+      validate: { min: -90, max: 90 }
+    },
+    longitude: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+      validate: { min: -180, max: 180 }
+    },
+  }, {
+    validate: {
+      bothCoordsOrNone() {
+        if ((this.latitude === null) !== (this.longitude === null)) {
+          throw new Error('Require either both latitude and longitude or neither')
+        }
+      }
+    }
+  });
+
+  Todo.associate = function(models) {
+    // associations can be defined here
+  };
+
+  return Todo;
+};
+```
 
 # Hooks
 
@@ -741,18 +858,21 @@ Project.findAll({ offset: 5, limit: 5 })
 
 # Limit or Exclude Instance Attributes
 
-## Limit
+## Limit Attributes
 
 ```js
 let tasks = await models.Task.findAll({ attributes: ['title', 'createdAt'] });
 ```
 
-## Exclude
+## Exclude Attributes
+
 ```js
 let tasks = await models.User.findAll({ attributes: { exclude: ['email', 'password'] });
 ```
 
 # Virtuals
+
+TODO
 
 # Seeds
 
@@ -815,21 +935,12 @@ User.findById(1).then(user => {
 
 ## Scopes
 
-These are virtually useless. See the [terrible Sequelize docs](http://docs.sequelizejs.com/manual/tutorial/scopes.html) to use them.
+See the [Sequelize docs](http://docs.sequelizejs.com/manual/tutorial/scopes.html) how to use scopes.
 
 ## Raw SQL Queries
 
-You can do these, but why would you do that?
+It can be done!
 
 ## Sync (don't use this)
 
-Don't use sync.
-
-// force: true will drop the table if it already exists {force: true}
-// User.sync().then(() => {
-  // Table created
-  // return User.create({
-  //   firstName: 'John',
-  //   lastName: 'Hancock'
-  // });
-// });
+Don't use sync, just use migrations.
