@@ -513,16 +513,20 @@ module.exports = (sequelize, DataTypes) => {
 ## Include, or Eager Loading
 
 ```js
-const pugs = await Pug.findAll({ // we want to find all the pugs, and include their owners
-    include: [{model: Owner}]
-  })
+// Find all the pugs, and include their owner
+const pugs = await Pug.findAll({ include: [{ model: Owner }] })
 ```
 
 **GOTCHA** - the included records will be available only if you capitalize their name `pug.Owner`.
 
 You can add a where query to this and also
 
-TODO - Can you include two associated models?
+You can include either one model as the example above or use the option `all: true` to include all associations. There does not seem to be a way to pick and choose which associated models to include.
+
+```js
+// Find one event, and include all its associated models
+const event = await Event.findById(eventId, { include: [{ all: true }] });
+```
 
 You can also add other options to the include request:
 
@@ -976,7 +980,7 @@ module.exports = {
 $ sequelize db:seed:all
 ```
 
-# Less Useful Stuff
+# Stuff You'll Use Less Often
 
 ## Bulk Creating
 
