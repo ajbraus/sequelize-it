@@ -205,26 +205,7 @@ We'll use the command line to generate the migration:
 $ sequelize migration:generate --name add-attr-to-todo
 ```
 
-Which generates this boilerplate:
-
-
-```js
-// migrations/20181206230335-add-attr-to-todo.js
-
-'use strict';
-
-module.exports = {
-  up: (queryInterface, Sequelize) => {
-
-  },
-
-  down: (queryInterface, Sequelize) => {
-
-  }
-};
-```
-
-The `up` method is the functions run when the migration is run, and the `down` method is run when the migration is undone, reversed, or rolledback. Some migration are irreversible, for example many data migrations. But as much as possible, you should write your migrations to be 100% reversible. We use the `queryInterface` methods to make changes to our tables in the `up` section, and the inverse changes in the `down` section
+Which generates `up` and `down` boilerplate which we'll populate with some `queryInterface` methods:
 
 ```js
 // migrations/20181206230335-add-attr-to-todo.js
@@ -233,16 +214,24 @@ The `up` method is the functions run when the migration is run, and the `down` m
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    queryInterface.addColumn('Todos', 'summary', { type: Sequelize.TEXT });
-    queryInterface.addColumn('Todos', 'completedAt', { type: Sequelize.DATE });
+    return [
+      queryInterface.addColumn('Todos', 'summary', { type: Sequelize.TEXT }),
+      queryInterface.addColumn('Todos', 'completedAt', { type: Sequelize.DATE });
+    ];
   },
 
   down: (queryInterface, Sequelize) => {
-    queryInterface.removeColumn('Todos', 'summary');
-    queryInterface.removeColumn('Todos', 'completedAt');
+    return [
+      queryInterface.removeColumn('Todos', 'summary');
+      queryInterface.removeColumn('Todos', 'completedAt');      
+    ]
   }
 };
 ```
+
+The `up` method is the functions run when the migration is run, and the `down` method is run when the migration is undone, reversed, or rolled back. Some migration are irreversible, for example many data migrations. But as much as possible, you should write your migrations to be 100% reversible. We use the `queryInterface` methods to make changes to our tables in the `up` section, and the inverse changes in the `down` section
+
+> **GOTCHA** - These up and down methods **must return a promise**, so if you are just doing one thing, use `return queryInterface...`, if you are doing multiple use `return [ queryInterface(), queryInterface(), etc ]`
 
 And then we'll have to update our models:
 
@@ -266,18 +255,20 @@ module.exports = (sequelize, DataTypes) => {
 
 ## Data Migrations
 
-TODO
+Migrations can also be used to update data in the database. Data Migrations are the recommended way to make changes to database data, for example... TODO
 
 
 ## QueryInterface Methods
 
 Here are an exhaustive list of the [queryInterface methods](http://docs.sequelizejs.com/class/lib/query-interface.js~QueryInterface.html). The most common ones are:
 
-* `addColumn(table: String, key: String, attribute: Object, options: Object)`
-* `renameColumn(tableName: String, attrNameBefore: String, attrNameAfter: String, options: Object)`
-* `changeColumn(tableName: String, attributeName: String, dataTypeOrOptions: Object, options: Object)` (changes the column's type)
-* `removeColumn(tableName: String, attributeName: String, options: Object)`
-* `addIndex(tableName: String, options: Object)`
+```js
+addColumn(table: String, key: String, attribute: Object, options: Object)
+renameColumn(tableName: String, attrNameBefore: String, attrNameAfter: String, options: Object)
+changeColumn(tableName: String, attributeName: String, dataTypeOrOptions: Object, options Object) // (changes the column's type)
+removeColumn(tableName: String, attributeName: String, options: Object)
+addIndex(tableName: String, options: Object)
+```
 
 ## Sequelize Data Types
 Here are an exhaustive list of [Sequelize Types](http://docs.sequelizejs.com/manual/tutorial/models-definition.html#data-types) you can use. The most common are as follows:
@@ -704,6 +695,7 @@ module.exports = (sequelize, DataTypes) => {
   return Todo;
 };
 ```
+
 
 ## Custom Validators
 
