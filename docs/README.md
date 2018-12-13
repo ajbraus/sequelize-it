@@ -676,44 +676,9 @@ friend.removePug(pug)
 friend.removePugs(pugsArray)
 ```
 
-# Configure db Connection
+# Virtual Attributes
 
-There are some verbose configuration settings you can use as your implementation gets more sophistocated:
-
-```js
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize('database', 'username', 'password', {
-  host: 'localhost',
-  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
-
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  },
-
-  // SQLite only
-  storage: 'path/to/database.sqlite',
-
-  // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
-  operatorsAliases: false
-});
-```
-
-Or you can use a URI to connect:
-
-```js
-const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
-```
-
-# Paranoid Setting
-
-If the `paranoid` options is true, the object will not be deleted, instead the `deletedAt` column will be set to the current timestamp. To force the deletion, you can pass force: true to the destroy call:
-
-```js
-task.destroy({ force: true })
-```
+TODO
 
 # Validations
 
@@ -830,6 +795,38 @@ Order of Operations
   afterBulkUpdate(options)
 ```
 
+# Seeds
+
+## Generate New Seeder File
+
+```bash
+$ sequelize seed:generate --name demo-user
+```
+
+```js
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.bulkInsert('Users', [{
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'demo@demo.com'
+      }], {});
+  },
+
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.bulkDelete('Users', null, {});
+  }
+};
+```
+
+## Run Seeds
+
+```bash
+$ sequelize db:seed:all
+```
+
 # Advanced Querying
 
 ## Where (advanced)
@@ -930,56 +927,6 @@ Subtask.findAll({
 Project.findAll({ offset: 5, limit: 5 })
 ```
 
-# Limit or Exclude Instance Attributes
-
-## Limit Attributes
-
-```js
-let tasks = await models.Task.findAll({ attributes: ['title', 'createdAt'] });
-```
-
-## Exclude Attributes
-
-```js
-let tasks = await models.User.findAll({ attributes: { exclude: ['email', 'password'] });
-```
-
-# Virtuals
-
-TODO
-
-# Seeds
-
-## Generate New Seeder File
-
-```bash
-$ sequelize seed:generate --name demo-user
-```
-
-```js
-'use strict';
-
-module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Users', [{
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'demo@demo.com'
-      }], {});
-  },
-
-  down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('Users', null, {});
-  }
-};
-```
-
-## Run Seeds
-
-```bash
-$ sequelize db:seed:all
-```
-
 # Stuff You'll Use Less Often
 
 ## Bulk Creating
@@ -1005,6 +952,58 @@ User.findById(1).then(user => {
   // Postgres will return the updated user by default (unless disabled by setting { returning: false })
   // In other dialects, you'll want to call user.reload() to get the updated instance...
 })
+```
+
+## Limit Attributes
+
+```js
+let tasks = await models.Task.findAll({ attributes: ['title', 'createdAt'] });
+```
+
+## Exclude Attributes
+
+```js
+let tasks = await models.User.findAll({ attributes: { exclude: ['email', 'password'] });
+```
+
+
+## Advanced DB Connection
+
+There are some verbose configuration settings you can use as your implementation gets more sophistocated:
+
+```js
+const Sequelize = require('sequelize');
+const sequelize = new Sequelize('database', 'username', 'password', {
+  host: 'localhost',
+  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
+
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
+
+  // SQLite only
+  storage: 'path/to/database.sqlite',
+
+  // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
+  operatorsAliases: false
+});
+```
+
+Or you can use a URI to connect:
+
+```js
+const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
+```
+
+## Paranoid Setting
+
+If the `paranoid` options is true, the object will not be deleted, instead the `deletedAt` column will be set to the current timestamp. To force the deletion, you can pass force: true to the destroy call:
+
+```js
+task.destroy({ force: true })
 ```
 
 ## Scopes
