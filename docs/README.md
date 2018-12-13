@@ -120,7 +120,7 @@ Please contribute to these docs by submitting a pull request to the project's [G
 To define a proper model, you also need to create a migration. For simplicity use a the `sequelize-cli` generators to get started:
 
 ```bash
-$ sequelize model:create --name Todo --attributes title:string
+$ sequelize model:create --name Todo --attributes title:string,desc:text
 ```
 
 This creates a `models/todo.js` model file and a corresponding migration in the `migrations` folder.
@@ -130,7 +130,8 @@ This creates a `models/todo.js` model file and a corresponding migration in the 
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Todo = sequelize.define('Todo', {
-    title: DataTypes.STRING
+    title: DataTypes.STRING,
+    desc: DataTypes.TEXT
   }, {});
 
   Todo.associate = function(models) {
@@ -155,6 +156,9 @@ module.exports = {
       },
       title: {
         type: Sequelize.STRING
+      },
+      desc: {
+        type: Sequelize.TEXT
       },
       createdAt: {
         allowNull: false,
@@ -260,6 +264,10 @@ module.exports = (sequelize, DataTypes) => {
 };
 ```
 
+## Data Migrations
+
+TODO
+
 
 ## QueryInterface Methods
 
@@ -290,7 +298,7 @@ Sequelize.BOOLEAN                     // TINYINT(1)
 Now that we've defined our models
 All the query helpers return promises, so either use the `then`/`catch` pattern or the `async`/`await` pattern.
 
-> GOTCHA - you can't just call `user.fullName` like you might expect. You have to call it like this: `user.get('fullName')`.
+> GOTCHA - you can't just call `user.fullName` on the result like you might expect. You have to add `raw: true` to the query and then access it like this: `user[0].fullName`.
 
 We'll include our models into any file using this line of code:
 
@@ -450,72 +458,39 @@ A nice thing to have! `.findOrCreate()`
 let tag = models.Tag.findOrCreate(req.body)
 ```
 
-
-# Migrations
-
-## Create Tables
-
-```js
-'use strict';
-module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Users', {
-      id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER
-      },
-      first_name: {
-        type: Sequelize.STRING
-      },
-      last_name: {
-        type: Sequelize.STRING
-      },
-      bio: {
-        type: Sequelize.TEXT
-      },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      }
-    });
-  },
-  down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Users');
-  }
-};
-```
-
-## Update/Drop Tables
-
-```js
-'use strict';
-
-module.exports = {
-  up: (queryInterface, Sequelize) => {
-    queryInterface.addColumn('Users', 'dob', { type: Sequelize.DATE });
-  },
-
-  down: (queryInterface, Sequelize) => {
-    queryInterface.removeColumn('Users', 'dob');
-  }
-};
-```
-
-## Data Migrations
-
-TODO
-
 # Associations: One to Many  
 
 TODO
 
 ## Defining Association
+
+First you'll have to add a foreign key through a migration. The only way to do this is to chain a `addColumn` function and an `addConstraint` function afterwards.
+
+```js
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.addColumn('Tweets', 'UserId', Sequelize.INTEGER).then(() => {
+      return queryInterface.addConstraint('Tweets', ['UserId'], {
+        type: 'foreign key',
+        name: 'user_tweets',
+        references: { //Required field
+          table: 'Users',
+          field: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
+    });
+  },
+
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.removeColumn('Tweets', 'UserId');
+  }
+};
+
+```
 
 ```js
 'use strict';
@@ -535,7 +510,32 @@ module.exports = (sequelize, DataTypes) => {
 };
 ```
 
-## Fetching Children
+## Include, or Eager Loading
+
+```js
+const pugs = await Pug.findAll({ // we want to find all the pugs, and include their owners
+    include: [{model: Owner}]
+  })
+```
+
+**GOTCHA** - the included records will be available only if you capitalize their name `pug.Owner`.
+
+You can add a where query to this and also
+
+TODO - Can you include two associated models?
+
+You can also add other options to the include request:
+
+```js
+{
+  model: User,
+  attributes: ['name', 'image'],
+  as: "Author",
+  where: { isPublished: true }
+}
+```
+
+## Getters and Setters
 
 ```js
 const models  = require('../db/models');
@@ -579,15 +579,98 @@ TODO
 
 # Associations: Many to Many  
 
-TODO
+## Associating Two Tables
 
-## Defining Association
+```js
+Event.belongsToMany(User, {through: 'rsvps'})
+User.belongsToMany(Event, {through: 'rsvps', foreignKey: 'GuestId', as: 'Guests'})
+```
 
-TODO
+Create a `rsvps` table with two foreign keys
+
+```
+createdAt | updatedAt | GuestId | EventId
+```
+
+```js
+User.getEvents();
+Event.getGuests();
+```
+
+## Self-Referential Many-to-Many Association
+
+Standard - Use `as`
+
+```js
+Item.hasMany(Item, {as: 'Subitems'})
+
+Item.find({where:{name: "Coffee"}, include:[{model: Item, as: 'Subitems'}]})
+
+
+```
+
+```
+createdAt | updatedAt | ItemId | SubItemId
+```
+
+Bi-Directional - Use `foreignKey` & `through`
+
+```js
+User.hasMany(User, {
+    as: 'Friends',
+    foreignKey: 'FriendId',
+    through: 'friends'
+})
+
+User.getFriends()
+```
+
+Create a `friends` table
+
+```
+createdAt | updatedAt | UserId | FriendId
+```
+
+```js
+User.hasMany(User, { // who follows you
+  as: 'Followers',
+  foreignKey: 'FollowId',
+  through: 'follows'
+})
+
+User.hasMany(User, { // who you follow
+  as: 'Follows',
+  foreignKey: 'FollowerId',
+  through: 'follows'
+})
+
+User.getFollows();
+User.getFollowers();
+```
+
+Create a `follows` table
+
+```
+createdAt | updatedAt | FollowId | FollowerId
+```
 
 ## Fetching Associated Records
 
-TODO
+```js
+pug.getFriends() // returns a promise for the array of friends for that pug
+pug.addFriend(friend) // creates a new row in the friendship table for the pug and the friend, returns a promise for the friendship (NOT the pug OR the friend - the "friendship")
+pug.addFriends(friendsArray) // creates a new row in the friendship table for each friend, returns a promise for the friendship
+pug.removeFriend(friend) // removes the row from the friendship table for that pug-friend, returns a promise for the number of affected rows (as if you'd want to destroy any friendships...right?)
+pug.removeFriends(friendsArray) // removes the rows from the friendship table for those pug-friend pairs, returns a promise for the number affected rows
+
+// analogous to above ^
+friend.getPugs()
+friend.addPug(pug)
+friend.addPugs(pugsArray)
+friend.setPugs(pugsArray)
+friend.removePug(pug)
+friend.removePugs(pugsArray)
+```
 
 # Configure db Connection
 
@@ -780,19 +863,6 @@ Project.findAll({
 })
 ```
 
-## Include TODO
-
-```js
-Project.findAll({
-    include: [{
-        model: Task,
-        where: { state: Sequelize.col('project.state') }
-    }]
-})
-
-```
-
-
 ## Order
 
 ```js
@@ -944,3 +1014,8 @@ It can be done!
 ## Sync (don't use this)
 
 Don't use sync, just use migrations.
+
+
+todo
+
+adding raw: true to flatten response to an array => user[0].attribute
