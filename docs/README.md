@@ -1133,8 +1133,3 @@ It can be done!
 ## Sync (don't use this)
 
 Don't use sync, just use migrations.
-
-
-todo
-
-adding raw: true to flatten response to an array => user[0].attribute
