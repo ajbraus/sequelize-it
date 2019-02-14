@@ -255,7 +255,48 @@ module.exports = (sequelize, DataTypes) => {
 
 ## Data Migrations
 
-Migrations can also be used to update data in the database. Data Migrations are the recommended way to make changes to database data, for example... TODO
+Migrations can also be used to update data in the database. Data Migrations are the recommended way to make changes to database data, for example, imagine you already had address information broken up into a bunch of columns, `addressOne`, `addressTwo`, `city`, etc, and you wanted to make a new column called `address` that was a concatenation of all of these pieces, then remove those old columns. You would use a data migration that
+
+1. Created the new column
+1. Used the old column data to update the new column's value
+1. Removed the old columns
+
+**REMINDER**—Data Migrations are often not reversible!
+
+```js
+// DATA MIGRATION
+
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    return [
+      await queryInterface.addColumn('Order', 'address', {
+        type: Sequelize.STRING(150),
+        defaultValue: ''
+      }),
+      await queryInterface.sequelize.query(
+        'UPDATE Order SET address = CONCAT( addressOne, " ", addressTwo, " ", city, ", ", state, " ", zip );'
+      ),
+
+      // remove unused fields
+      await queryInterface.removeColumn('Order', 'addressOne'),
+      await queryInterface.removeColumn('Order', 'addressTwo'),
+      await queryInterface.removeColumn('Order', 'city'),
+      await queryInterface.removeColumn('Order', 'state'),
+      await queryInterface.removeColumn('Order', 'zip')
+    ];
+  },
+
+  down: (queryInterface, Sequelize) => {
+    /*
+      Add reverting commands here.
+      Return a promise to correctly handle asynchronicity.
+
+      Example:
+      return queryInterface.dropTable('users');
+    */
+  }
+};
+```
 
 
 ## QueryInterface Methods
@@ -443,7 +484,7 @@ try {
 
 ## Find or Create
 
-A nice thing to have! `.findOrCreate()`
+What if you want to look up a resource or create it? Well sequelize has you covered:
 
 ```js
 let tag = models.Tag.findOrCreate(req.body)
@@ -451,11 +492,11 @@ let tag = models.Tag.findOrCreate(req.body)
 
 # Associations: One to Many  
 
-TODO
+The most common association is a simple One-to-Many association also called a "has-many-belongs-to" association. This sets up a parent-child relationship. SQL databases are great for doing relationships like this using a foreign key column.
 
 ## Defining Association
 
-First you'll have to add a foreign key through a migration. The only way to do this is to chain a `addColumn` function and an `addConstraint` function afterwards.
+First you'll have to add a foreign key column through a migration. The only way to do this is to chain a `addColumn` function and an `addConstraint` function afterwards.
 
 ```js
 'use strict';
@@ -483,7 +524,12 @@ module.exports = {
 
 ```
 
+Once you have the foreign key column defined then you can add the `.hasMany()` function to the parent model, and `.belongsTo()` to the child model. These will enable the getter and setter functions you'll use to fetch the parent or children from an instance of either model.
+
+Let's look at an example where "users have many tweets" and "tweets belong to users"
+
 ```js
+// USER MODEL
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
@@ -494,11 +540,77 @@ module.exports = (sequelize, DataTypes) => {
   })
 
   User.associate = function(models) {
-    User.hasMany(models.Post); // PostId
+    User.hasMany(models.Tweet);
   }
 
   return User;
 };
+```
+
+```js
+// TWEET MODEL
+'use strict';
+
+module.exports = (sequelize, DataTypes) => {
+  var User = sequelize.define('Tweet', {
+    first_name: DataTypes.STRING,
+    last_name: DataTypes.STRING,
+    bio: DataTypes.TEXT
+  })
+
+  Tweet.associate = function(models) {
+    Tweet.belongsTo(models.User); // UserId
+  }
+
+  return User;
+};
+```
+
+Now when we have either a `user` or `tweet` instance, we can fetch and set its children or parent, respectively.
+
+```js
+user.getTweets();
+user.addTweet(tweet1);
+user.setTweets([tweet1, tweet2]); //=> sets only two tweets as the children
+user.setTweets([]); //=> removes all children
+user.hasTweets(); //=> returns true or false
+
+tweet.getUser();
+tweet.setUser(user);
+tweet.hasUser(); //=> returns true or false
+```
+
+You can also set filters to query children, or request only certain attributes.
+
+```js
+user.getTweets({ where: 'id > 10' });
+user.getTweets({attributes: ['title']});
+```
+```
+
+The model association can also be declared with an alias:
+
+```js
+  Tweet.belongsTo(models.User, { as: 'author' }); // AuthorId
+  let author = await tweet.getAuthor();
+```
+
+Here is a full example using express fetching one parent resource, and then its children.
+
+```js
+const models  = require('../db/models');
+
+//POSTS#SHOW
+app.get('/posts/:id', async (req, res, next) => {
+  try {
+    let post = await models.Post.findById(req.params.id);
+    let comments = await post.getComments({ order: [['createdAt', 'DESC']] });
+  } catch (err) {
+    console.log(err);
+  }
+
+  res.render('posts-show', { post: post, comments: comments});
+});
 ```
 
 ## Include, or Eager Loading
@@ -530,51 +642,23 @@ You can also add other options to the include request:
 }
 ```
 
-## Getters and Setters
-
-```js
-const models  = require('../db/models');
-
-//POSTS#SHOW
-app.get('/posts/:id', (req, res, next) {
-  models.Post.findById(req.params.id).then(post => {
-    post.getComments({ order: [['createdAt', 'DESC']] }).then(comments => {
-      res.render('posts-show', { post: post, comments: comments})
-    });
-  });
-});
-```
-
-> Look how cool this same code looks if we use `async` and `await` :D Compare & Contrast
-
-```js
-const models  = require('../db/models');
-
-//POSTS#SHOW
-app.get('/posts/:id', async (req, res, next) => {
-  try {
-    let post = await models.Post.findById(req.params.id);
-    let comments = await post.getComments({ order: [['createdAt', 'DESC']] });
-  } catch (err) {
-    console.log(err);
-  }
-
-  res.render('posts-show', { post: post, comments: comments});
-});
-```
-
-## Fetching Parent
-
-TODO
-
 ## onDelete
 
-`onDelete` TODO
+The `onDelete` option defines if there ought to be any action one an instance of a model is deleted.
 
+```js
+Category.hasMany(models.Product, { onDelete: 'cascade' });
+```
 
 # Associations: Many to Many  
 
+The next most common association is a many-to-many association also called a "has-and-belongs-to-many" association. We accomplish this via using a join table.
+
 ## Associating Two Tables
+
+Here is an example using Users and Events.
+
+Use the `.belongsToMany()` function to define the association on both models:
 
 ```js
 Event.belongsToMany(User, {through: 'rsvps'})
@@ -587,21 +671,22 @@ Create a `rsvps` table with two foreign keys
 createdAt | updatedAt | GuestId | EventId
 ```
 
+Use the getters and setters sequelize makes available:
+
 ```js
 User.getEvents();
 Event.getGuests();
+// etc
 ```
 
 ## Self-Referential Many-to-Many Association
 
-Standard - Use `as`
+It is also common to have one resource have and belong to many of itself, such as friends in Facebook or followers in Twitter. This is accomplished by defining an alias using the `as` option.
 
 ```js
-Item.hasMany(Item, {as: 'Subitems'})
+Item.hasMany(Item, { as: 'Subitems' }) // Subitems are instances of the Item model
 
-Item.find({where:{name: "Coffee"}, include:[{model: Item, as: 'Subitems'}]})
-
-
+Item.find({ where: { name: "Coffee" }, include: [ { model: Item, as: 'Subitems' } ] })
 ```
 
 ```
@@ -669,7 +754,46 @@ friend.removePugs(pugsArray)
 
 # Virtual Attributes
 
-TODO
+It is also possible to set virtual attributes using what sequelize calls pseudo properties.
+
+
+
+```js
+
+```js
+// USER MODEL
+'use strict';
+
+module.exports = (sequelize, DataTypes) => {
+  var User = sequelize.define('User', {
+    first_name: DataTypes.STRING,
+    last_name: DataTypes.STRING,
+    bio: DataTypes.TEXT
+  },
+  {
+    getterMethods: {
+      fullName: function () {
+        return this.getDataValue('firstName') + ' ' + this.getDataValue('lastName')
+      }
+    },
+    setterMethods: {
+      fullName: function (value) {
+        var parts = value.split(' ')
+
+        this.setDataValue('lastName', parts[parts.length-1])
+        this.setDataValue('firstName', parts[0]) // this of course does not work if the user has several first names
+      }
+    }
+  })
+
+  User.associate = function(models) {
+    User.hasMany(models.Tweet);
+  }
+
+  return User;
+};
+
+```
 
 # Validations
 
@@ -949,13 +1073,13 @@ User.findById(1).then(user => {
 ## Limit Attributes
 
 ```js
-let tasks = await models.Task.findAll({ attributes: ['title', 'createdAt'] });
+models.Task.findAll({ attributes: ['title', 'createdAt'] });
 ```
 
 ## Exclude Attributes
 
 ```js
-let tasks = await models.User.findAll({ attributes: { exclude: ['email', 'password'] });
+models.User.findAll({ attributes: { exclude: ['email', 'password'] });
 ```
 
 
