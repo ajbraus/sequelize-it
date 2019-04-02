@@ -41,7 +41,7 @@ Please contribute to these docs by submitting a pull request to the project's [G
 1. Install sequelize, sequelize-cli, and your database's modules (here postgres) locally:
 
   ```bash
-  $ npm install sequelize sequelize-cli pg pg-hstore --save
+  $ npm install sequelize sequelize-cli pg pg-hstore --save -g
   ```
 
 1. Initializing Sequelize with the `sequelize-cli` kinda barfs a bunch of folders and files onto your project, so we are going to preemptively avoid that by setting up a `.sequelizerc` file puts all sequelize stuff into a folder called `/db`. So make that file with the following contents:
