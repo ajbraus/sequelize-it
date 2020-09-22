@@ -29,7 +29,9 @@ Please contribute to these docs by submitting a pull request to the project's [G
 1. Sequelize works with many flavors of SQL databases, so install one of them your computer.
   * mysql
   * sqlite
-  * postgres - [postgresapp](https://postgresapp.com/) is an easy way to get postgres installed
+  * postgres 
+    1. `$ brew install postgresql`
+    2. Install [postgresapp](https://postgresapp.com/)
   * mssql
 
 1. Create your db
