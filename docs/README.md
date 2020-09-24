@@ -34,7 +34,7 @@ Please contribute to these docs by submitting a pull request to the project's [G
     2. Install [postgresapp](https://postgresapp.com/)
   * mssql
 
-1. Create your db
+1. Create your db (replace "my-db" with the name of the database you'd like to create—usually the same as the name of your project)
 
   ```bash
   $ createdb my-db
