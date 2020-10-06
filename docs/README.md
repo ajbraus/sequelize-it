@@ -363,10 +363,10 @@ try {
 
 ## Show
 
-`.findById()` (if you have the id)
+`.findByPk()` (if you have the id)
 
 ```js
-models.User.findById(userId).then(user => {
+models.User.findByPk(userId).then(user => {
 
 }).catch(err => {
 
@@ -375,7 +375,7 @@ models.User.findById(userId).then(user => {
 // OR WITH ASYNC/AWAIT
 
 try {
-  let user = await models.User.findById(userId);
+  let user = await models.User.findByPk(userId);
 } catch (err) {
 
 }
@@ -393,7 +393,7 @@ models.User.findOne({ where: { attribute: value } }).then(user => {
 // OR WITH ASYNC/AWAIT
 
 try {
-  let user = await models.User.findById(userId);
+  let user = await models.User.findByPk(userId);
 } catch (err) {
 
 }
@@ -444,7 +444,7 @@ try {
 `.update()`
 
 ```js
-models.Task.findById(taskId).then(task => {
+models.Task.findByPk(taskId).then(task => {
   task.update(req.body).then(task => {
 
   }).catch(err => {
@@ -457,7 +457,7 @@ models.Task.findById(taskId).then(task => {
 // OR USE ASYNC/AWAIT
 
 try {
-  let task = await models.Task.findById(taskId);
+  let task = await models.Task.findByPk(taskId);
   task = await task.update(req.body);
 } catch (err) {
 
@@ -469,7 +469,7 @@ try {
 `.destroy()`
 
 ```js
-Task.findById(taskId).then(task => {
+Task.findByPk(taskId).then(task => {
   task.destroy()
 }).catch(err => {
 
@@ -478,7 +478,7 @@ Task.findById(taskId).then(task => {
 // OR USE ASYNC/AWAIT
 
 try {
-  let task = await models.Task.findById(taskId);
+  let task = await models.Task.findByPk(taskId);
   task.destroy();
 } catch (err) {
 
@@ -606,7 +606,7 @@ const models  = require('../db/models');
 //POSTS#SHOW
 app.get('/posts/:id', async (req, res, next) => {
   try {
-    let post = await models.Post.findById(req.params.id);
+    let post = await models.Post.findByPk(req.params.id);
     let comments = await post.getComments({ order: [['createdAt', 'DESC']] });
   } catch (err) {
     console.log(err);
@@ -631,7 +631,7 @@ You can include either one model as the example above or use the option `all: tr
 
 ```js
 // Find one event, and include all its associated models
-const event = await Event.findById(eventId, { include: [{ all: true }] });
+const event = await Event.findByPk(eventId, { include: [{ all: true }] });
 ```
 
 You can also add other options to the include request:
@@ -1065,7 +1065,7 @@ User.bulkCreate([
 ## Incrementing & Decrementing
 
 ```js
-User.findById(1).then(user => {
+User.findByPk(1).then(user => {
   return user.increment('my-integer-field', {by: 2})
 }).then(user => {
   // Postgres will return the updated user by default (unless disabled by setting { returning: false })
