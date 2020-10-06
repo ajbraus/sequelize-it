@@ -43,7 +43,7 @@ Please contribute to these docs by submitting a pull request to the project's [G
 1. Install sequelize, sequelize-cli, and your database's modules (here postgres) locally:
 
   ```bash
-  $ npm i sequelize pg pg-hstore --save 
+  $ npm i sequelize pg pg-hstore sequelize-cli
   $ npm i sequelize-cli -g
   ```
 
@@ -97,7 +97,7 @@ Please contribute to these docs by submitting a pull request to the project's [G
       "dialect": "postgres"
     },
     "production": {
-      "use_env_variable": "PROD_DATABASE_URL"
+      "use_env_variable": "DATABASE_URL"
     }
   }
   ```
