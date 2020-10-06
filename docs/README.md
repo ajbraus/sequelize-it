@@ -348,7 +348,7 @@ const models  = require('../db/models');
 ```js
 models.User.findAll({ where: { name: "Betty" } }).then(users => {
 
-}).catch(err => ({
+}).catch(err => {
 
 })
 
@@ -368,7 +368,7 @@ try {
 ```js
 models.User.findById(userId).then(user => {
 
-}).catch(err => ({
+}).catch(err => {
 
 })
 
@@ -386,7 +386,7 @@ try {
 ```js
 models.User.findOne({ where: { attribute: value } }).then(user => {
 
-}).catch(err => ({
+}).catch(err => {
 
 })
 
@@ -407,7 +407,7 @@ try {
 ```js
 models.Task.create(req.body).then(task => {
   // you can now access the newly created task via the variable task
-}).catch(err => ({
+}).catch(err => {
 
 })
 
@@ -421,11 +421,11 @@ Or if you prefer the railsy way — `.build()` then `.save()`
 ```js
 models.Task.build(req.body).then(task => {
   task.save().then(task => {
-  }).catch(err => ({
+  }).catch(err => {
 
   });
   // you can now access the newly created task via the variable task
-}).catch(err => ({
+}).catch(err => {
 
 })
 
@@ -447,10 +447,10 @@ try {
 models.Task.findById(taskId).then(task => {
   task.update(req.body).then(task => {
 
-  }).catch(err => ({
+  }).catch(err => {
 
   })
-}).catch(err => ({
+}).catch(err => {
 
 })
 
@@ -471,7 +471,7 @@ try {
 ```js
 Task.findById(taskId).then(task => {
   task.destroy()
-}).catch(err => ({
+}).catch(err => {
 
 })
 
