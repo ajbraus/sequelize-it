@@ -499,24 +499,23 @@ The most common association is a simple One-to-Many association also called a "h
 
 ## Defining Association
 
-First you'll have to add a foreign key column through a migration. The only way to do this is to chain a `addColumn` function and an `addConstraint` function afterwards.
+First you'll have to add a foreign key column through a migration. The only way to do this is to add a reference attribute column with an `addColumn` migration.
 
 ```js
 'use strict';
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.addColumn('Tweets', 'UserId', Sequelize.INTEGER).then(() => {
-      return queryInterface.addConstraint('Tweets', ['UserId'], {
-        type: 'foreign key',
-        name: 'user_tweets',
-        references: { //Required field
-          table: 'Users',
-          field: 'id'
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
-      });
+    return queryInterface.addColumn(, 'UserId', Sequelize.INTEGER).then(() => {
+      'Tweets', // name of source model
+      'UserId', // name of key we are adding
+      type: Sequelize.INTEGER,
+      references: { //Required field
+        model: 'Users',
+        key: 'id'
+      },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE'
     });
   },
 
@@ -555,10 +554,9 @@ module.exports = (sequelize, DataTypes) => {
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
-  var User = sequelize.define('Tweet', {
-    first_name: DataTypes.STRING,
-    last_name: DataTypes.STRING,
-    bio: DataTypes.TEXT
+  var Tweet = sequelize.define('Tweet', {
+    content: DataTypes.TEXT
+    UserId: DataTypes.NUMBER
   })
 
   Tweet.associate = function(models) {
