@@ -509,13 +509,15 @@ module.exports = {
     return queryInterface.addColumn(
       'Tweets', // name of source model
       'UserId', // name of key we are adding
-      type: Sequelize.INTEGER,
-      references: { //Required field
-        model: 'Users',
-        key: 'id'
-      },
-      onDelete: 'CASCADE',
-      onUpdate: 'CASCADE'
+      { 
+        type: Sequelize.INTEGER,
+        references: { //Required field
+          model: 'Users',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      }
     );
   },
 
