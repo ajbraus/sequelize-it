@@ -506,7 +506,7 @@ First you'll have to add a foreign key column through a migration. The only way 
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.addColumn('UserId', Sequelize.INTEGER).then(() => {
+    return queryInterface.addColumn(
       'Tweets', // name of source model
       'UserId', // name of key we are adding
       type: Sequelize.INTEGER,
@@ -516,7 +516,7 @@ module.exports = {
       },
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE'
-    });
+    );
   },
 
   down: (queryInterface, Sequelize) => {
