@@ -872,7 +872,7 @@ module.exports = (sequelize, DataTypes) => {
 # Hooks
 
 ```js
-User.hook('beforeSave', (user, options) => {
+User.addHook('beforeSave', (user, options) => {
   // encrypt password
 });
 ```
